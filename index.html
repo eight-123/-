@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style>
+
+body{
+    margin:0;
+    text-align:center;
+}
+
+button{
+    padding:15px;
+    margin:10px;
+}
+
+iframe{
+    width:100%;
+    height:90vh;
+    border:none;
+}
+
+</style>
+
+</head>
+<body>
+
+<button onclick="loadPage('chem.html')">
+化学
+</button>
+
+<button onclick="loadPage('history.html')">
+日本史
+</button>
+
+<iframe id="frame"
+src="chem.html">
+</iframe>
+
+<script>
+
+function loadPage(page){
+
+    document.getElementById(
+        "frame"
+    ).src = page;
+
+}
+
+</script>
+
+</body>
+</html>
