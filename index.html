@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <style>
 body{
-    font-family: Arial;
+    font-family:Arial;
     text-align:center;
     background:#f0f0f0;
     padding:20px;
 }
 .event{
     background:white;
-    margin:10px auto;
-    width:320px;
-    padding:15px;
+    margin:6px auto;
+    width:340px;
+    padding:12px;
     border:2px solid gray;
     border-radius:10px;
     cursor:pointer;
@@ -22,18 +22,12 @@ body{
     background:lightblue;
 }
 button{
-    margin:10px;
-    padding:10px 20px;
-    font-size:16px;
+    margin:8px;
+    padding:10px 18px;
 }
-#result{
-    margin-top:20px;
-    font-size:18px;
-}
-.answer{
-    margin-top:10px;
-    font-size:15px;
-    color:#333;
+#quiz{
+    max-height:65vh;
+    overflow:auto;
 }
 </style>
 </head>
@@ -41,11 +35,11 @@ button{
 
 <h2>日本史 時系列クイズ</h2>
 
-<div id="quiz"></div>
-
+<button onclick="generateRandom()">通常(5問)</button>
+<button onclick="generateAll()">全部モード</button>
 <button onclick="check()">答え合わせ</button>
-<button onclick="generate()">次の問題</button>
 
+<div id="quiz"></div>
 <div id="result"></div>
 
 <script>
@@ -88,102 +82,99 @@ let current = [];
 let selected = null;
 
 function shuffle(arr){
-    return arr.sort(() => Math.random() - 0.5);
+ return arr.sort(()=>Math.random()-0.5);
 }
 
-function generate(){
+function render(list){
 
-    document.getElementById("result").innerHTML = "";
+ document.getElementById("result").innerHTML="";
+ current=list;
 
-    current = shuffle([...events]).slice(0,5);
-    let display = shuffle([...current]);
+ let display=shuffle([...list]);
 
-    let quiz = document.getElementById("quiz");
-    quiz.innerHTML = "";
+ let quiz=document.getElementById("quiz");
+ quiz.innerHTML="";
 
-    display.forEach(e=>{
+ display.forEach(e=>{
 
-        let div = document.createElement("div");
-        div.className = "event";
-        div.innerText = e.name;
-        div.dataset.year = e.year;
+   let div=document.createElement("div");
+   div.className="event";
+   div.innerText=e.name;
+   div.dataset.year=e.year;
 
-        div.onclick = function(){
-            choose(this);
-        };
+   div.onclick=function(){
+      choose(this);
+   };
 
-        quiz.appendChild(div);
-    });
+   quiz.appendChild(div);
+ });
+}
+
+function generateRandom(){
+ render(shuffle([...events]).slice(0,5));
+}
+
+function generateAll(){
+ render([...events]);
 }
 
 function choose(item){
 
-    if(selected === null){
+ if(selected===null){
 
-        selected = item;
-        item.classList.add("selected");
+   selected=item;
+   item.classList.add("selected");
 
-    }else if(selected === item){
+ }else if(selected===item){
 
-        item.classList.remove("selected");
-        selected = null;
+   item.classList.remove("selected");
+   selected=null;
 
-    }else{
+ }else{
 
-        let tempText = selected.innerText;
-        let tempYear = selected.dataset.year;
+   let tempText=selected.innerText;
+   let tempYear=selected.dataset.year;
 
-        selected.innerText = item.innerText;
-        selected.dataset.year = item.dataset.year;
+   selected.innerText=item.innerText;
+   selected.dataset.year=item.dataset.year;
 
-        item.innerText = tempText;
-        item.dataset.year = tempYear;
+   item.innerText=tempText;
+   item.dataset.year=tempYear;
 
-        selected.classList.remove("selected");
-        selected = null;
-    }
+   selected.classList.remove("selected");
+   selected=null;
+ }
 }
 
 function check(){
 
-    let items = [...document.querySelectorAll(".event")];
+ let items=[...document.querySelectorAll(".event")];
+ let user=items.map(i=>parseFloat(i.dataset.year));
 
-    let userOrder = items.map(i => parseFloat(i.dataset.year));
+ let sorted=[...current].sort((a,b)=>a.year-b.year);
 
-    let sortedEvents = [...current].sort((a,b)=>a.year-b.year);
+ let correct=true;
 
-    let correctOrder = sortedEvents.map(i=>i.year);
+ for(let i=0;i<user.length;i++){
+   if(user[i]!==sorted[i].year){
+      correct=false;
+   }
+ }
 
-    let result = document.getElementById("result");
+ if(correct){
 
-    let correct = true;
+   document.getElementById("result").innerHTML="✅ 完全正解！";
 
-    for(let i=0;i<userOrder.length;i++){
-        if(userOrder[i] !== correctOrder[i]){
-            correct = false;
-        }
-    }
+ }else{
 
-    if(correct){
+   let answer=sorted.map(e=>e.name).join(" → ");
 
-        result.innerHTML = "✅ 正解！";
-
-    }else{
-
-        let answer = sortedEvents
-            .map(e => `${e.name}`)
-            .join(" → ");
-
-        result.innerHTML =
-        `❌ 不正解
-        <div class="answer">
-        正しい順番:<br><br>
-        ${answer}
-        </div>`;
-    }
+   document.getElementById("result").innerHTML=
+   "❌ 不正解<br><br>正解:<br>"+answer;
+ }
 }
 
-generate();
+generateRandom();
 
 </script>
 
