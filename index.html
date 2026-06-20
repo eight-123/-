@@ -2,33 +2,80 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>日本史 時系列クイズ</title>
+
 <style>
+
 body{
-    font-family:Arial;
-    text-align:center;
-    background:#f0f0f0;
-    padding:20px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f3f3f3;
+    padding: 20px;
+    margin: 0;
 }
-.event{
-    background:white;
-    margin:6px auto;
-    width:340px;
-    padding:12px;
-    border:2px solid gray;
-    border-radius:10px;
-    cursor:pointer;
+
+h2{
+    margin-bottom: 20px;
 }
-.selected{
-    background:lightblue;
-}
+
 button{
-    margin:8px;
-    padding:10px 18px;
+    margin: 6px;
+    padding: 10px 18px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #ddd;
+    cursor: pointer;
 }
+
 #quiz{
-    max-height:65vh;
-    overflow:auto;
+    max-height: 65vh;
+    overflow: auto;
+    margin-top: 20px;
 }
+
+.event{
+    background: white;
+    margin: 8px auto;
+    width: 330px;
+    max-width: 90%;
+    padding: 14px;
+    border: 2px solid gray;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.selected{
+    background: #bfe3ff;
+    transform: scale(1.03);
+    border: 2px solid #2b7cff;
+}
+
+.correct{
+    background: #d8ffd8;
+    border: 2px solid #33aa33;
+}
+
+.wrong{
+    background: #ffd6d6;
+    border: 2px solid #dd3333;
+}
+
+#result{
+    margin-top: 25px;
+    padding-bottom: 30px;
+    font-size: 18px;
+}
+
+.answer{
+    margin-top: 15px;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
 </style>
 </head>
 <body>
@@ -37,7 +84,7 @@ button{
 
 <button onclick="generateRandom()">通常(5問)</button>
 <button onclick="generateAll()">全部モード</button>
-<button onclick="check()">答え合わせ</button>
+<button onclick="checkAnswer()">答え合わせ</button>
 
 <div id="quiz"></div>
 <div id="result"></div>
@@ -82,96 +129,143 @@ let current = [];
 let selected = null;
 
 function shuffle(arr){
- return arr.sort(()=>Math.random()-0.5);
+    return arr.sort(() => Math.random() - 0.5);
+}
+
+function resetSelection(){
+
+    if(selected){
+        selected.classList.remove("selected");
+    }
+
+    selected = null;
+}
+
+function clearColors(){
+
+    document.querySelectorAll(".event").forEach(el => {
+        el.classList.remove("correct");
+        el.classList.remove("wrong");
+    });
 }
 
 function render(list){
 
- document.getElementById("result").innerHTML="";
- current=list;
+    resetSelection();
+    clearColors();
 
- let display=shuffle([...list]);
+    document.getElementById("result").innerHTML = "";
 
- let quiz=document.getElementById("quiz");
- quiz.innerHTML="";
+    current = list;
 
- display.forEach(e=>{
+    let display = shuffle([...list]);
 
-   let div=document.createElement("div");
-   div.className="event";
-   div.innerText=e.name;
-   div.dataset.year=e.year;
+    let quiz = document.getElementById("quiz");
+    quiz.innerHTML = "";
 
-   div.onclick=function(){
-      choose(this);
-   };
+    display.forEach(e => {
 
-   quiz.appendChild(div);
- });
+        let div = document.createElement("div");
+
+        div.className = "event";
+        div.innerText = e.name;
+        div.dataset.year = e.year;
+
+        div.onclick = function(){
+            choose(this);
+        };
+
+        quiz.appendChild(div);
+    });
 }
 
 function generateRandom(){
- render(shuffle([...events]).slice(0,5));
+    let list = shuffle([...events]).slice(0,5);
+    render(list);
 }
 
 function generateAll(){
- render([...events]);
+    render([...events]);
 }
 
 function choose(item){
 
- if(selected===null){
+    clearColors();
 
-   selected=item;
-   item.classList.add("selected");
+    if(selected === null){
 
- }else if(selected===item){
+        selected = item;
+        item.classList.add("selected");
+        return;
+    }
 
-   item.classList.remove("selected");
-   selected=null;
+    if(selected === item){
 
- }else{
+        item.classList.remove("selected");
+        selected = null;
+        return;
+    }
 
-   let tempText=selected.innerText;
-   let tempYear=selected.dataset.year;
+    // 入れ替え
+    let tempText = selected.innerText;
+    let tempYear = selected.dataset.year;
 
-   selected.innerText=item.innerText;
-   selected.dataset.year=item.dataset.year;
+    selected.innerText = item.innerText;
+    selected.dataset.year = item.dataset.year;
 
-   item.innerText=tempText;
-   item.dataset.year=tempYear;
+    item.innerText = tempText;
+    item.dataset.year = tempYear;
 
-   selected.classList.remove("selected");
-   selected=null;
- }
+    selected.classList.remove("selected");
+    selected = null;
 }
 
-function check(){
+function checkAnswer(){
 
- let items=[...document.querySelectorAll(".event")];
- let user=items.map(i=>parseFloat(i.dataset.year));
+    resetSelection();
+    clearColors();
 
- let sorted=[...current].sort((a,b)=>a.year-b.year);
+    let items = [...document.querySelectorAll(".event")];
 
- let correct=true;
+    let userOrder = items.map(i => parseFloat(i.dataset.year));
 
- for(let i=0;i<user.length;i++){
-   if(user[i]!==sorted[i].year){
-      correct=false;
-   }
- }
+    let correctEvents = [...current].sort((a,b)=>a.year-b.year);
 
- if(correct){
+    let correct = true;
 
-   document.getElementById("result").innerHTML="✅ 完全正解！";
+    for(let i=0;i<items.length;i++){
 
- }else{
+        if(userOrder[i] === correctEvents[i].year){
 
-   let answer=sorted.map(e=>e.name).join(" → ");
+            items[i].classList.add("correct");
 
-   document.getElementById("result").innerHTML=
-   "❌ 不正解<br><br>正解:<br>"+answer;
- }
+        }else{
+
+            items[i].classList.add("wrong");
+            correct = false;
+        }
+    }
+
+    let result = document.getElementById("result");
+
+    if(correct){
+
+        result.innerHTML = "✅ 完全正解！";
+
+    }else{
+
+        let answer = correctEvents
+            .map(e => e.name)
+            .join(" → ");
+
+        result.innerHTML = `
+        ❌ 不正解
+        <div class="answer">
+        正しい順番:<br><br>
+        ${answer}
+        </div>
+        `;
+    }
 }
 
 generateRandom();
@@ -179,4 +273,4 @@ generateRandom();
 </script>
 
 </body>
-</html> 
+</html>
