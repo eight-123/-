@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>元素周期表アプリ</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f5f5f5;
+    padding:15px;
+}
+
+/* 上部表示 */
+
+#topPanel{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+#elementTitle{
+    text-align:center;
+    font-size:28px;
+    margin-bottom:15px;
+}
+
+/* ボタン */
+
+#modeButtons{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:20px;
+}
+
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.active{
+    background:#4a90e2;
+    color:white;
+}
+
+.inactive{
+    background:#ddd;
+}
+
+/* 原子モデル */
+
+#atomViewer{
+    width:320px;
+    height:320px;
+    margin:auto;
+    position:relative;
+    background:#fafafa;
+    border-radius:20px;
+}
+
+.nucleus{
+    position:absolute;
+    width:28px;
+    height:28px;
+    background:#ff4d4d;
+    border-radius:50%;
+    left:146px;
+    top:146px;
+}
+
+.orbit{
+    position:absolute;
+    border:2px solid #bbb;
+    border-radius:50%;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+}
+
+.electron{
+    position:absolute;
+    width:10px;
+    height:10px;
+    background:#2196f3;
+    border-radius:50%;
+}
+
+/* 説明欄 */
+
+#info{
+    margin-top:20px;
+    text-align:center;
+    font-size:18px;
+    line-height:1.8;
+}
+
+/* 周期表 */
+
+#tableWrapper{
+    overflow-x:auto;
+    padding-bottom:10px;
+}
+
+#periodicTable{
+    display:grid;
+    grid-template-columns:repeat(18,55px);
+    grid-template-rows:repeat(10,55px);
+    gap:4px;
+    min-width:1060px;
+}
+
+/* 元素 */
+
+.element{
+    background:white;
+    border-radius:8px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    font-weight:bold;
+    transition:.15s;
+    user-select:none;
+}
+
+.element:hover{
+    transform:scale(1.05);
+}
+
+/* 色分類 */
+
+.alkali{
+    background:#ffb3b3;
+}
+
+.alkaline{
+    background:#ffd699;
+}
+
+.transition{
+    background:#fff2a8;
+}
+
+.nonmetal{
+    background:#b8f5b8;
+}
+
+.halogen{
+    background:#bde8ff;
+}
+
+.noble{
+    background:#d6c5ff;
+}
+
+.other{
+    background:#dddddd;
+}
+
+/* スマホ */
+
+@media(max-width:700px){
+
+    #atomViewer{
+        width:250px;
+        height:250px;
+    }
+
+    .nucleus{
+        left:111px;
+        top:111px;
+    }
+
+    button{
+        padding:10px 15px;
+        font-size:14px;
+    }
+
+    #elementTitle{
+        font-size:22px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="topPanel">
+
+    <div id="elementTitle">
+        元素を選択
+    </div>
+
+    <div id="modeButtons">
+        <button id="normalBtn" class="active">通常</button>
+        <button id="ionBtn" class="inactive">イオン</button>
+    </div>
+
+    <div id="atomViewer"></div>
+
+    <div id="info">
+        下の周期表から選択
+    </div>
+
+</div>
+
+<div id="tableWrapper">
+    <div id="periodicTable"></div>
+</div>
+
+<script>
+
+/* モード */
+
+let mode = "normal";
+
+const normalBtn =
+document.getElementById("normalBtn");
+
+const ionBtn =
+document.getElementById("ionBtn");
+
+normalBtn.onclick = ()=>{
+
+    mode = "normal";
+
+    normalBtn.className="active";
+    ionBtn.className="inactive";
+
+    if(currentElement){
+        showElement(currentElement);
+    }
+};
+
+ionBtn.onclick = ()=>{
+
+    mode = "ion";
+
+    ionBtn.className="active";
+    normalBtn.className="inactive";
+
+    if(currentElement){
+        showElement(currentElement);
+    }
+};
+
+
+/* 要素取得 */
+
+const table =
+document.getElementById("periodicTable");
+
+const viewer =
+document.getElementById("atomViewer");
+
+const title =
+document.getElementById("elementTitle");
+
+const info =
+document.getElementById("info");
+
+let currentElement = null;
+
+
+const elements = [
+
+/* ===== 1周期 ===== */
+
+{symbol:"H",name:"水素",number:1,row:1,col:1,category:"nonmetal"},
+{symbol:"He",name:"ヘリウム",number:2,row:1,col:18,category:"noble"},
+
+/* ===== 2周期 ===== */
+
+{symbol:"Li",name:"リチウム",number:3,row:2,col:1,category:"alkali"},
+{symbol:"Be",name:"ベリリウム",number:4,row:2,col:2,category:"alkaline"},
+{symbol:"B",name:"ホウ素",number:5,row:2,col:13,category:"other"},
+{symbol:"C",name:"炭素",number:6,row:2,col:14,category:"nonmetal"},
+{symbol:"N",name:"窒素",number:7,row:2,col:15,category:"nonmetal"},
+{symbol:"O",name:"酸素",number:8,row:2,col:16,category:"nonmetal"},
+{symbol:"F",name:"フッ素",number:9,row:2,col:17,category:"halogen"},
+{symbol:"Ne",name:"ネオン",number:10,row:2,col:18,category:"noble"},
+
+/* ===== 3周期 ===== */
+
+{symbol:"Na",name:"ナトリウム",number:11,row:3,col:1,category:"alkali"},
+{symbol:"Mg",name:"マグネシウム",number:12,row:3,col:2,category:"alkaline"},
+{symbol:"Al",name:"アルミニウム",number:13,row:3,col:13,category:"other"},
+{symbol:"Si",name:"ケイ素",number:14,row:3,col:14,category:"other"},
+{symbol:"P",name:"リン",number:15,row:3,col:15,category:"nonmetal"},
+{symbol:"S",name:"硫黄",number:16,row:3,col:16,category:"nonmetal"},
+{symbol:"Cl",name:"塩素",number:17,row:3,col:17,category:"halogen"},
+{symbol:"Ar",name:"アルゴン",number:18,row:3,col:18,category:"noble"},
+
+/* ===== 4周期 ===== */
+
+{symbol:"K",name:"カリウム",number:19,row:4,col:1,category:"alkali"},
+{symbol:"Ca",name:"カルシウム",number:20,row:4,col:2,category:"alkaline"},
+{symbol:"Sc",name:"スカンジウム",number:21,row:4,col:3,category:"transition"},
+{symbol:"Ti",name:"チタン",number:22,row:4,col:4,category:"transition"},
+{symbol:"V",name:"バナジウム",number:23,row:4,col:5,category:"transition"},
+{symbol:"Cr",name:"クロム",number:24,row:4,col:6,category:"transition"},
+{symbol:"Mn",name:"マンガン",number:25,row:4,col:7,category:"transition"},
+{symbol:"Fe",name:"鉄",number:26,row:4,col:8,category:"transition"},
+{symbol:"Co",name:"コバルト",number:27,row:4,col:9,category:"transition"},
+{symbol:"Ni",name:"ニッケル",number:28,row:4,col:10,category:"transition"},
+{symbol:"Cu",name:"銅",number:29,row:4,col:11,category:"transition"},
+{symbol:"Zn",name:"亜鉛",number:30,row:4,col:12,category:"transition"},
+{symbol:"Ga",name:"ガリウム",number:31,row:4,col:13,category:"other"},
+{symbol:"Ge",name:"ゲルマニウム",number:32,row:4,col:14,category:"other"},
+{symbol:"As",name:"ヒ素",number:33,row:4,col:15,category:"other"},
+{symbol:"Se",name:"セレン",number:34,row:4,col:16,category:"nonmetal"},
+{symbol:"Br",name:"臭素",number:35,row:4,col:17,category:"halogen"},
+{symbol:"Kr",name:"クリプトン",number:36,row:4,col:18,category:"noble"},
+
+/* ===== 5周期 ===== */
+
+{symbol:"Rb",name:"ルビジウム",number:37,row:5,col:1,category:"alkali"},
+{symbol:"Sr",name:"ストロンチウム",number:38,row:5,col:2,category:"alkaline"},
+{symbol:"Y",name:"イットリウム",number:39,row:5,col:3,category:"transition"},
+{symbol:"Zr",name:"ジルコニウム",number:40,row:5,col:4,category:"transition"},
+{symbol:"Nb",name:"ニオブ",number:41,row:5,col:5,category:"transition"},
+{symbol:"Mo",name:"モリブデン",number:42,row:5,col:6,category:"transition"},
+{symbol:"Tc",name:"テクネチウム",number:43,row:5,col:7,category:"transition"},
+{symbol:"Ru",name:"ルテニウム",number:44,row:5,col:8,category:"transition"},
+{symbol:"Rh",name:"ロジウム",number:45,row:5,col:9,category:"transition"},
+{symbol:"Pd",name:"パラジウム",number:46,row:5,col:10,category:"transition"},
+{symbol:"Ag",name:"銀",number:47,row:5,col:11,category:"transition"},
+{symbol:"Cd",name:"カドミウム",number:48,row:5,col:12,category:"transition"},
+{symbol:"In",name:"インジウム",number:49,row:5,col:13,category:"other"},
+{symbol:"Sn",name:"スズ",number:50,row:5,col:14,category:"other"},
+{symbol:"Sb",name:"アンチモン",number:51,row:5,col:15,category:"other"},
+{symbol:"Te",name:"テルル",number:52,row:5,col:16,category:"other"},
+{symbol:"I",name:"ヨウ素",number:53,row:5,col:17,category:"halogen"},
+{symbol:"Xe",name:"キセノン",number:54,row:5,col:18,category:"noble"},
+
+/* ===== 6周期 ===== */
+
+{symbol:"Cs",name:"セシウム",number:55,row:6,col:1,category:"alkali"},
+{symbol:"Ba",name:"バリウム",number:56,row:6,col:2,category:"alkaline"},
+{symbol:"La",name:"ランタン",number:57,row:6,col:3,category:"transition"},
+{symbol:"Hf",name:"ハフニウム",number:72,row:6,col:4,category:"transition"},
+{symbol:"Ta",name:"タンタル",number:73,row:6,col:5,category:"transition"},
+{symbol:"W",name:"タングステン",number:74,row:6,col:6,category:"transition"},
+{symbol:"Re",name:"レニウム",number:75,row:6,col:7,category:"transition"},
+{symbol:"Os",name:"オスミウム",number:76,row:6,col:8,category:"transition"},
+{symbol:"Ir",name:"イリジウム",number:77,row:6,col:9,category:"transition"},
+{symbol:"Pt",name:"白金",number:78,row:6,col:10,category:"transition"},
+{symbol:"Au",name:"金",number:79,row:6,col:11,category:"transition"},
+{symbol:"Hg",name:"水銀",number:80,row:6,col:12,category:"transition"},
+{symbol:"Tl",name:"タリウム",number:81,row:6,col:13,category:"other"},
+{symbol:"Pb",name:"鉛",number:82,row:6,col:14,category:"other"},
+{symbol:"Bi",name:"ビスマス",number:83,row:6,col:15,category:"other"},
+{symbol:"Po",name:"ポロニウム",number:84,row:6,col:16,category:"other"},
+{symbol:"At",name:"アスタチン",number:85,row:6,col:17,category:"halogen"},
+{symbol:"Rn",name:"ラドン",number:86,row:6,col:18,category:"noble"},
+
+/* ===== 7周期 ===== */
+
+{symbol:"Fr",name:"フランシウム",number:87,row:7,col:1,category:"alkali"},
+{symbol:"Ra",name:"ラジウム",number:88,row:7,col:2,category:"alkaline"},
+{symbol:"Ac",name:"アクチニウム",number:89,row:7,col:3,category:"transition"},
+{symbol:"Rf",name:"ラザホージウム",number:104,row:7,col:4,category:"transition"},
+{symbol:"Db",name:"ドブニウム",number:105,row:7,col:5,category:"transition"},
+{symbol:"Sg",name:"シーボーギウム",number:106,row:7,col:6,category:"transition"},
+{symbol:"Bh",name:"ボーリウム",number:107,row:7,col:7,category:"transition"},
+{symbol:"Hs",name:"ハッシウム",number:108,row:7,col:8,category:"transition"},
+{symbol:"Mt",name:"マイトネリウム",number:109,row:7,col:9,category:"transition"},
+{symbol:"Ds",name:"ダームスタチウム",number:110,row:7,col:10,category:"transition"},
+{symbol:"Rg",name:"レントゲニウム",number:111,row:7,col:11,category:"transition"},
+{symbol:"Cn",name:"コペルニシウム",number:112,row:7,col:12,category:"transition"},
+{symbol:"Nh",name:"ニホニウム",number:113,row:7,col:13,category:"other"},
+{symbol:"Fl",name:"フレロビウム",number:114,row:7,col:14,category:"other"},
+{symbol:"Mc",name:"モスコビウム",number:115,row:7,col:15,category:"other"},
+{symbol:"Lv",name:"リバモリウム",number:116,row:7,col:16,category:"other"},
+{symbol:"Ts",name:"テネシン",number:117,row:7,col:17,category:"halogen"},
+{symbol:"Og",name:"オガネソン",number:118,row:7,col:18,category:"noble"},
+
+/* ===== ランタノイド ===== */
+
+{symbol:"Ce",name:"セリウム",number:58,row:9,col:4,category:"transition"},
+{symbol:"Pr",name:"プラセオジム",number:59,row:9,col:5,category:"transition"},
+{symbol:"Nd",name:"ネオジム",number:60,row:9,col:6,category:"transition"},
+{symbol:"Pm",name:"プロメチウム",number:61,row:9,col:7,category:"transition"},
+{symbol:"Sm",name:"サマリウム",number:62,row:9,col:8,category:"transition"},
+{symbol:"Eu",name:"ユウロピウム",number:63,row:9,col:9,category:"transition"},
+{symbol:"Gd",name:"ガドリニウム",number:64,row:9,col:10,category:"transition"},
+{symbol:"Tb",name:"テルビウム",number:65,row:9,col:11,category:"transition"},
+{symbol:"Dy",name:"ジスプロシウム",number:66,row:9,col:12,category:"transition"},
+{symbol:"Ho",name:"ホルミウム",number:67,row:9,col:13,category:"transition"},
+{symbol:"Er",name:"エルビウム",number:68,row:9,col:14,category:"transition"},
+{symbol:"Tm",name:"ツリウム",number:69,row:9,col:15,category:"transition"},
+{symbol:"Yb",name:"イッテルビウム",number:70,row:9,col:16,category:"transition"},
+{symbol:"Lu",name:"ルテチウム",number:71,row:9,col:17,category:"transition"},
+
+/* ===== アクチノイド ===== */
+
+{symbol:"Th",name:"トリウム",number:90,row:10,col:4,category:"transition"},
+{symbol:"Pa",name:"プロトアクチニウム",number:91,row:10,col:5,category:"transition"},
+{symbol:"U",name:"ウラン",number:92,row:10,col:6,category:"transition"},
+{symbol:"Np",name:"ネプツニウム",number:93,row:10,col:7,category:"transition"},
+{symbol:"Pu",name:"プルトニウム",number:94,row:10,col:8,category:"transition"},
+{symbol:"Am",name:"アメリシウム",number:95,row:10,col:9,category:"transition"},
+{symbol:"Cm",name:"キュリウム",number:96,row:10,col:10,category:"transition"},
+{symbol:"Bk",name:"バークリウム",number:97,row:10,col:11,category:"transition"},
+{symbol:"Cf",name:"カリホルニウム",number:98,row:10,col:12,category:"transition"},
+{symbol:"Es",name:"アインスタイニウム",number:99,row:10,col:13,category:"transition"},
+{symbol:"Fm",name:"フェルミウム",number:100,row:10,col:14,category:"transition"},
+{symbol:"Md",name:"メンデレビウム",number:101,row:10,col:15,category:"transition"},
+{symbol:"No",name:"ノーベリウム",number:102,row:10,col:16,category:"transition"},
+{symbol:"Lr",name:"ローレンシウム",number:103,row:10,col:17,category:"transition"}
+
+];
+
+/* 周期表描画 */
+
+function buildTable(){
+
+    table.innerHTML = "";
+
+    elements.forEach(el=>{
+
+        const div =
+        document.createElement("div");
+
+        div.className =
+        "element " + el.category;
+
+        div.textContent =
+        el.symbol;
+
+        div.style.gridRow =
+        el.row;
+
+        div.style.gridColumn =
+        el.col;
+
+        div.onclick = ()=>{
+
+            currentElement = el;
+            showElement(el);
+
+        };
+
+        table.appendChild(div);
+    });
+}
+
+
+function showElement(el){
+
+    title.textContent =
+    el.name + " (" + el.symbol + ")";
+
+    let electronCount =
+    el.number;
+
+    let explanation = "";
+
+    /* イオンモード */
+
+    if(mode==="ion"){
+
+        const ion =
+        getIonInfo(el);
+
+        if(ion.canIon){
+
+            /* ここ修正版 */
+
+            if(ion.charge > 0){
+
+                // 陽イオン（電子を失う）
+                electronCount =
+                el.number - ion.charge;
+
+            }
+
+            else{
+
+                // 陰イオン（電子を受け取る）
+                electronCount =
+                el.number +
+                Math.abs(ion.charge);
+
+            }
+
+            title.textContent =
+            el.name +
+            " (" +
+            el.symbol +
+            ion.text +
+            ")";
+
+            explanation =
+            ion.explanation;
+
+        }
+
+        else{
+
+            explanation =
+            ion.explanation;
+        }
+
+    }
+
+    /* 通常モード */
+
+    else{
+
+        explanation =
+        "通常の原子";
+
+    }
+
+    /* 電子配置取得 */
+
+    const shells =
+    getElectronShells(
+        electronCount
+    );
+
+    /* 原子モデル描画 */
+
+    drawAtom(shells);
+
+    /* 殻表示 */
+
+    const shellNames =
+    ["K","L","M","N","O","P","Q"];
+
+    let shellText = "";
+
+    for(let i=0;i<shells.length;i++){
+
+        shellText +=
+        shellNames[i] +
+        "殻 " +
+        shells[i] +
+        "個<br>";
+
+    }
+
+    /* 情報表示 */
+
+    info.innerHTML =
+    "原子番号 " +
+    el.number +
+    "<br><br>" +
+    shellText +
+    "<br>" +
+    explanation;
+
+}
+function getIonInfo(el){
+
+    /* 個別例外 */
+
+    const fixed = {
+
+        H:1,
+        Ag:1,
+        Zn:2,
+        Cu:2,
+        Fe:2
+
+    };
+
+    /* 希ガス */
+
+    if(el.category==="noble"){
+
+        return{
+
+            canIon:false,
+
+            explanation:
+            "すでに安定しています<br>イオンになりにくい"
+
+        };
+    }
+
+    /* 個別 */
+
+    if(fixed[el.symbol]){
+
+        const charge =
+        fixed[el.symbol];
+
+        return{
+
+            canIon:true,
+
+            charge:charge,
+
+            text:charge+"+",
+
+            explanation:
+            "中学で扱う代表的なイオン<br>" +
+            charge +
+            "個電子を放出"
+
+        };
+    }
+
+    /* 1族 */
+
+    if(el.col===1){
+
+        return{
+
+            canIon:true,
+
+            charge:1,
+
+            text:"+",
+
+            explanation:
+            "最外殻電子1個<br>1個放出 → 安定"
+
+        };
+    }
+
+    /* 2族 */
+
+    if(el.col===2){
+
+        return{
+
+            canIon:true,
+
+            charge:2,
+
+            text:"2+",
+
+            explanation:
+            "最外殻電子2個<br>2個放出 → 安定"
+
+        };
+    }
+
+    /* 13族 */
+
+    if(el.col===13){
+
+        return{
+
+            canIon:true,
+
+            charge:3,
+
+            text:"3+",
+
+            explanation:
+            "3個放出 → 安定"
+
+        };
+    }
+
+    /* 15族 */
+
+    if(el.col===15){
+
+        return{
+
+            canIon:true,
+
+            charge:-3,
+
+            text:"3-",
+
+            explanation:
+            "電子3個受け取る"
+
+        };
+    }
+
+    /* 16族 */
+
+    if(el.col===16){
+
+        return{
+
+            canIon:true,
+
+            charge:-2,
+
+            text:"2-",
+
+            explanation:
+            "電子2個受け取る"
+
+        };
+    }
+
+    /* 17族 */
+
+    if(el.col===17){
+
+        return{
+
+            canIon:true,
+
+            charge:-1,
+
+            text:"-",
+
+            explanation:
+            "電子1個受け取る"
+
+        };
+    }
+
+    /* その他 */
+
+    return{
+
+        canIon:false,
+
+        explanation:
+        "中学範囲では<br>代表的なイオンを扱いません"
+
+    };
+
+}
+
+function getElectronShells(number){
+
+    // 中学理科用（殻モデル）
+
+    const capacities =
+    [2,8,18,32,32,18,8];
+
+    let result = [];
+
+    let remaining = number;
+
+    for(let i=0;i<capacities.length;i++){
+
+        if(remaining<=0) break;
+
+        const put =
+        Math.min(
+            capacities[i],
+            remaining
+        );
+
+        result.push(put);
+
+        remaining -= put;
+    }
+
+    return result;
+}
+
+function drawAtom(shells){
+
+    viewer.innerHTML = "";
+
+    const center =
+    viewer.clientWidth / 2;
+
+    // 原子核
+
+    const nucleus =
+    document.createElement("div");
+
+    nucleus.className =
+    "nucleus";
+
+    viewer.appendChild(nucleus);
+
+    // 半径
+
+    const baseRadius =
+    viewer.clientWidth * 0.15;
+
+    // 殻
+
+    shells.forEach((count,index)=>{
+
+        const radius =
+        baseRadius +
+        index*28;
+
+        // 軌道
+
+        const orbit =
+        document.createElement("div");
+
+        orbit.className =
+        "orbit";
+
+        orbit.style.width =
+        radius*2 + "px";
+
+        orbit.style.height =
+        radius*2 + "px";
+
+        viewer.appendChild(orbit);
+
+        // 電子
+
+        for(let i=0;i<count;i++){
+
+            const angle =
+            (Math.PI*2*i)/count;
+
+            const x =
+            center +
+            radius*Math.cos(angle);
+
+            const y =
+            center +
+            radius*Math.sin(angle);
+
+            const electron =
+            document.createElement("div");
+
+            electron.className =
+            "electron";
+
+            electron.style.left =
+            (x-5)+"px";
+
+            electron.style.top =
+            (y-5)+"px";
+
+            viewer.appendChild(electron);
+
+        }
+
+    });
+
+}
+
+/* 起動 */
+
+buildTable();
+showElement(elements[0]);
+currentElement = elements[0];
+
+</script>
+
+</body>
+</html>
