@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    background:#f0f0f0;
+    padding:20px;
+}
+.event{
+    background:white;
+    margin:10px auto;
+    width:320px;
+    padding:15px;
+    border:2px solid gray;
+    border-radius:10px;
+    cursor:pointer;
+}
+.selected{
+    background:lightblue;
+}
+button{
+    margin:10px;
+    padding:10px 20px;
+    font-size:16px;
+}
+#result{
+    margin-top:20px;
+    font-size:18px;
+}
+.answer{
+    margin-top:10px;
+    font-size:15px;
+    color:#333;
+}
+</style>
+</head>
+<body>
+
+<h2>日本史 時系列クイズ</h2>
+
+<div id="quiz"></div>
+
+<button onclick="check()">答え合わせ</button>
+<button onclick="generate()">次の問題</button>
+
+<div id="result"></div>
+
+<script>
+
+const events = [
+{name:"青鞜社",year:1911},
+{name:"護憲運動",year:1913},
+{name:"大戦景気",year:1914},
+{name:"米騒動",year:1918},
+{name:"全国水平社",year:1922},
+{name:"関東大震災",year:1923},
+{name:"治安維持法",year:1925},
+{name:"男子普通選挙",year:1925.1},
+{name:"金融恐慌",year:1927},
+{name:"世界恐慌",year:1929},
+{name:"昭和恐慌",year:1930},
+{name:"満州事変",year:1931},
+{name:"五一五事件",year:1932},
+{name:"二二六事件",year:1936},
+{name:"盧溝橋事件",year:1937},
+{name:"日中戦争",year:1937.1},
+{name:"国家総動員法",year:1938},
+{name:"第二次世界大戦",year:1939},
+{name:"大政翼賛会",year:1940},
+{name:"日独伊三国同盟",year:1940.1},
+{name:"真珠湾奇襲",year:1941},
+{name:"太平洋戦争",year:1941.1},
+{name:"ミッドウェー海戦",year:1942},
+{name:"サイパン島占領",year:1944},
+{name:"東京大空襲",year:1945},
+{name:"ポツダム宣言",year:1945.1},
+{name:"原爆広島",year:1945.2},
+{name:"原爆長崎",year:1945.3},
+{name:"日本国憲法公布",year:1946},
+{name:"日本国憲法施行",year:1947},
+{name:"自衛隊",year:1954}
+];
+
+let current = [];
+let selected = null;
+
+function shuffle(arr){
+    return arr.sort(() => Math.random() - 0.5);
+}
+
+function generate(){
+
+    document.getElementById("result").innerHTML = "";
+
+    current = shuffle([...events]).slice(0,5);
+    let display = shuffle([...current]);
+
+    let quiz = document.getElementById("quiz");
+    quiz.innerHTML = "";
+
+    display.forEach(e=>{
+
+        let div = document.createElement("div");
+        div.className = "event";
+        div.innerText = e.name;
+        div.dataset.year = e.year;
+
+        div.onclick = function(){
+            choose(this);
+        };
+
+        quiz.appendChild(div);
+    });
+}
+
+function choose(item){
+
+    if(selected === null){
+
+        selected = item;
+        item.classList.add("selected");
+
+    }else if(selected === item){
+
+        item.classList.remove("selected");
+        selected = null;
+
+    }else{
+
+        let tempText = selected.innerText;
+        let tempYear = selected.dataset.year;
+
+        selected.innerText = item.innerText;
+        selected.dataset.year = item.dataset.year;
+
+        item.innerText = tempText;
+        item.dataset.year = tempYear;
+
+        selected.classList.remove("selected");
+        selected = null;
+    }
+}
+
+function check(){
+
+    let items = [...document.querySelectorAll(".event")];
+
+    let userOrder = items.map(i => parseFloat(i.dataset.year));
+
+    let sortedEvents = [...current].sort((a,b)=>a.year-b.year);
+
+    let correctOrder = sortedEvents.map(i=>i.year);
+
+    let result = document.getElementById("result");
+
+    let correct = true;
+
+    for(let i=0;i<userOrder.length;i++){
+        if(userOrder[i] !== correctOrder[i]){
+            correct = false;
+        }
+    }
+
+    if(correct){
+
+        result.innerHTML = "✅ 正解！";
+
+    }else{
+
+        let answer = sortedEvents
+            .map(e => `${e.name}`)
+            .join(" → ");
+
+        result.innerHTML =
+        `❌ 不正解
+        <div class="answer">
+        正しい順番:<br><br>
+        ${answer}
+        </div>`;
+    }
+}
+
+generate();
+
+</script>
+
+</body>
+</html>
