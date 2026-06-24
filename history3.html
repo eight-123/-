@@ -3,152 +3,176 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>日本史 年表ノート</title>
+<title>第二次世界大戦 年表</title>
 
 <style>
 body{
     font-family: Arial, sans-serif;
     margin:0;
-    background:#f4f4f4;
+    background:#f5f5f5;
     text-align:center;
 }
 
-/* 年表 */
+h1{
+    margin:20px;
+}
+
+/* 横スクロール */
+
+#container{
+    overflow-x:auto;
+    border-top:2px solid gray;
+    border-bottom:2px solid gray;
+    background:white;
+}
+
+/* メインキャンバス */
 
 #timeline{
-    display:flex;
-    overflow-x:auto;
-    gap:15px;
-    padding:20px;
-    background:#ddd;
-    scroll-behavior:smooth;
+    width:2500px;
+    height:650px;
+    position:relative;
+    margin:20px;
+}
+
+/* 横線 */
+
+.lane{
+    position:absolute;
+    width:2400px;
+    border-top:1px solid #ccc;
+}
+
+/* 国名 */
+
+.label{
+    position:absolute;
+    left:0;
+    font-weight:bold;
+    background:#f5f5f5;
+    padding-right:10px;
+}
+
+/* 年 */
+
+.yearMark{
+    position:absolute;
+    top:0;
+    font-size:14px;
+    color:gray;
 }
 
 /* イベント */
 
 .event{
-    min-width:170px;
-    padding:12px;
-    background:white;
-    border-radius:12px;
+    position:absolute;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    background:#4488ff;
     cursor:pointer;
-    box-shadow:0 2px 5px rgba(0,0,0,0.2);
-    flex-shrink:0;
     transition:0.2s;
 }
 
 .event:hover{
-    transform:scale(1.05);
-}
-
-.year{
-    font-size:22px;
-    font-weight:bold;
-}
-
-.name{
-    margin-top:8px;
-    font-size:14px;
-}
-
-/* メモ */
-
-#editor{
-    margin:20px;
-    padding:20px;
-    background:white;
-    width:80%;
-    max-width:700px;
-    margin-left:auto;
-    margin-right:auto;
-    border-radius:15px;
-}
-
-textarea{
-    width:95%;
-    height:220px;
-    font-size:18px;
-    padding:10px;
+    transform:scale(1.3);
 }
 
 /* 保存済み */
 
 .saved{
-    background:#b7f5b7;
+    background:#44bb44;
+    transform:scale(1.25);
 }
 
-/* 選択中 */
+/* 編集 */
 
-.selected{
-    border:3px solid #4488ff;
+#editor{
+    margin:20px auto;
+    width:80%;
+    max-width:700px;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+}
+
+textarea{
+    width:95%;
+    height:200px;
+    font-size:18px;
+    padding:10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>日本史 年表ノート</h1>
+<h1>第二次世界大戦 年表</h1>
 
-<div id="timeline"></div>
+<div id="container">
+    <div id="timeline"></div>
+</div>
 
 <div id="editor">
     <h2 id="title">イベントを選択</h2>
-    <textarea id="memo" placeholder="ここにメモを書く"></textarea>
+    <textarea id="memo" placeholder="メモを書く"></textarea>
 </div>
 
 <script>
 
-var allEvents = [
+const lanes = {
+    "日本":80,
+    "ドイツ":150,
+    "イタリア":220,
+    "アメリカ":290,
+    "ソ連":360,
+    "中国":430,
+    "国際":500
+};
 
-{name:"青鞜社", year:1911, month:9, day:null},
-{name:"第一次護憲運動", year:1912, month:12, day:null},
-{name:"大戦景気", year:1914, month:7, day:28},
-{name:"米騒動", year:1918, month:8, day:3},
-{name:"全国水平社", year:1922, month:3, day:3},
-{name:"関東大震災", year:1923, month:9, day:1},
-{name:"男子普通選挙法成立", year:1925, month:5, day:5},
-{name:"治安維持法", year:1925, month:3, day:29},
-{name:"金融恐慌", year:1927, month:3, day:null},
-{name:"世界恐慌", year:1929, month:10, day:24},
-{name:"昭和恐慌", year:1930, month:null, day:null},
-{name:"満州事変", year:1931, month:9, day:18},
-{name:"五・一五事件", year:1932, month:5, day:15},
-{name:"政党内閣終焉（斎藤実内閣）", year:1932, month:5, day:26},
-{name:"二・二六事件", year:1936, month:2, day:26},
-{name:"盧溝橋事件", year:1937, month:7, day:7},
-{name:"日中戦争", year:1937, month:7, day:null},
-{name:"国家総動員法", year:1938, month:4, day:1},
-{name:"独ソ不可侵条約", year:1939, month:8, day:23},
-{name:"大政翼賛会", year:1940, month:10, day:12},
-{name:"日独伊三国同盟", year:1940, month:9, day:27},
-{name:"大西洋憲章", year:1941, month:8, day:14},
-{name:"日ソ中立条約", year:1941, month:4, day:13},
-{name:"ABCD包囲網", year:1941, month:7, day:null},
-{name:"真珠湾奇襲", year:1941, month:12, day:8},
-{name:"太平洋戦争", year:1941, month:12, day:8},
-{name:"大東亜共栄圏", year:1942, month:null, day:null},
-{name:"ミッドウェー海戦", year:1942, month:6, day:5},
-{name:"ガダルカナル島の戦い", year:1942, month:8, day:7},
-{name:"皇民化政策", year:1942, month:null, day:null},
-{name:"イタリア降伏", year:1943, month:9, day:8},
-{name:"サイパン島占領", year:1944, month:7, day:9},
-{name:"東京大空襲", year:1945, month:3, day:10},
-{name:"ヤルタ会談", year:1945, month:2, day:4},
-{name:"ドイツ降伏", year:1945, month:5, day:8},
-{name:"ポツダム宣言", year:1945, month:7, day:26},
-{name:"広島原爆投下", year:1945, month:8, day:6},
-{name:"ソ連対日参戦", year:1945, month:8, day:8},
-{name:"長崎原爆投下", year:1945, month:8, day:9},
-{name:"ポツダム宣言受諾", year:1945, month:8, day:14},
-{name:"終戦の玉音放送", year:1945, month:8, day:15},
-{name:"国際連合成立", year:1945, month:10, day:24},
-{name:"極東国際軍事裁判", year:1946, month:5, day:3},
-{name:"日本国憲法公布", year:1946, month:11, day:3},
-{name:"教育基本法", year:1947, month:3, day:31},
-{name:"日本国憲法施行", year:1947, month:5, day:3},
-{name:"治安維持法廃止", year:1945, month:10, day:15},
-{name:"冷戦開始", year:1947, month:null, day:null},
-{name:"自衛隊発足", year:1954, month:7, day:1}
+const allEvents = [
+
+{name:"大政翼賛会", year:1940, team:"日本"},
+{name:"日ソ中立条約", year:1941, team:"日本"},
+{name:"ABCD包囲網", year:1941, team:"日本"},
+{name:"真珠湾奇襲", year:1941, team:"日本"},
+{name:"太平洋戦争", year:1941, team:"日本"},
+{name:"大東亜共栄圏", year:1942, team:"日本"},
+{name:"ミッドウェー海戦", year:1942, team:"日本"},
+{name:"ガダルカナル島の戦い", year:1942, team:"日本"},
+{name:"サイパン島占領", year:1944, team:"日本"},
+{name:"東京大空襲", year:1945, team:"日本"},
+{name:"ポツダム宣言受諾", year:1945, team:"日本"},
+{name:"終戦の玉音放送", year:1945, team:"日本"},
+
+{name:"独ソ不可侵条約", year:1939, team:"ドイツ"},
+{name:"日独伊三国同盟", year:1940, team:"ドイツ"},
+{name:"ドイツ降伏", year:1945, team:"ドイツ"},
+
+{name:"日独伊三国同盟", year:1940, team:"イタリア"},
+{name:"イタリア降伏", year:1943, team:"イタリア"},
+
+{name:"ABCD包囲網", year:1941, team:"アメリカ"},
+{name:"大西洋憲章", year:1941, team:"アメリカ"},
+{name:"ミッドウェー海戦", year:1942, team:"アメリカ"},
+{name:"ガダルカナル島の戦い", year:1942, team:"アメリカ"},
+{name:"サイパン島占領", year:1944, team:"アメリカ"},
+{name:"広島原爆投下", year:1945, team:"アメリカ"},
+{name:"長崎原爆投下", year:1945, team:"アメリカ"},
+
+{name:"独ソ不可侵条約", year:1939, team:"ソ連"},
+{name:"日ソ中立条約", year:1941, team:"ソ連"},
+{name:"ヤルタ会談", year:1945, team:"ソ連"},
+{name:"ソ連対日参戦", year:1945, team:"ソ連"},
+
+{name:"盧溝橋事件", year:1937, team:"中国"},
+{name:"日中戦争", year:1937, team:"中国"},
+{name:"皇民化政策", year:1942, team:"中国"},
+
+{name:"大西洋憲章", year:1941, team:"国際"},
+{name:"ヤルタ会談", year:1945, team:"国際"},
+{name:"ポツダム宣言", year:1945, team:"国際"},
+{name:"国際連合成立", year:1945, team:"国際"}
 
 ];
 
@@ -156,85 +180,94 @@ const timeline = document.getElementById("timeline");
 const memo = document.getElementById("memo");
 const title = document.getElementById("title");
 
-let currentEvent = null;
-let selectedBox = null;
+let current = null;
 
-function createTimeline(){
+function yearToX(year){
+    return (year - 1937) * 250 + 150;
+}
 
-    allEvents.sort((a,b)=>a.year-b.year);
+/* レーン生成 */
+
+for(let team in lanes){
+
+    let line = document.createElement("div");
+    line.className="lane";
+    line.style.top=lanes[team]+"px";
+    line.style.left="120px";
+    timeline.appendChild(line);
+
+    let label=document.createElement("div");
+    label.className="label";
+    label.textContent=team;
+    label.style.top=(lanes[team]-10)+"px";
+    timeline.appendChild(label);
+}
+
+/* 年表示 */
+
+for(let y=1937;y<=1945;y++){
+
+    let year=document.createElement("div");
+    year.className="yearMark";
+    year.textContent=y;
+    year.style.left=yearToX(y)+"px";
+    year.style.top="20px";
+
+    timeline.appendChild(year);
+}
+
+/* イベント生成 */
+
+function drawEvents(){
 
     allEvents.forEach(event=>{
 
-        let box = document.createElement("div");
-        box.className = "event";
+        let dot=document.createElement("div");
+        dot.className="event";
 
-        let saved = localStorage.getItem("memo_"+event.name);
+        let saved=localStorage.getItem(
+            "memo_"+event.name+"_"+event.team
+        );
 
-        if(saved && saved !== ""){
-            box.classList.add("saved");
+        if(saved && saved!==""){
+            dot.classList.add("saved");
         }
 
-        box.innerHTML = `
-            <div class="year">${event.year}</div>
-            <div class="name">${event.name}</div>
-        `;
+        dot.style.left=yearToX(event.year)+"px";
+        dot.style.top=(lanes[event.team]-11)+"px";
 
-        box.onclick = ()=>openMemo(event,box);
+        dot.onclick=()=>openMemo(event);
 
-        timeline.appendChild(box);
-
+        timeline.appendChild(dot);
     });
 }
 
-function openMemo(event,box){
+function openMemo(event){
 
-    currentEvent = event;
+    current=event;
 
-    if(selectedBox){
-        selectedBox.classList.remove("selected");
-    }
+    title.textContent=
+      event.name+" ("+event.team+")";
 
-    box.classList.add("selected");
-    selectedBox = box;
-
-    title.textContent = event.name;
-
-    memo.value =
-        localStorage.getItem("memo_"+event.name) || "";
+    memo.value=
+      localStorage.getItem(
+        "memo_"+event.name+"_"+event.team
+      ) || "";
 }
 
 memo.addEventListener("input",()=>{
 
-    if(!currentEvent) return;
+    if(!current) return;
 
     localStorage.setItem(
-        "memo_"+currentEvent.name,
-        memo.value
+      "memo_"+current.name+"_"+current.team,
+      memo.value
     );
 
-    updateColors();
+    location.reload();
 });
 
-function updateColors(){
-
-    let boxes = document.querySelectorAll(".event");
-
-    boxes.forEach((box,index)=>{
-
-        let event = allEvents[index];
-
-        let saved =
-          localStorage.getItem("memo_"+event.name);
-
-        box.classList.remove("saved");
-
-        if(saved && saved!==""){
-            box.classList.add("saved");
-        }
-    });
-}
-
-createTimeline();
+drawEvents();
 
 </script>
 
