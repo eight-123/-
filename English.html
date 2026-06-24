@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>英語クイズアプリ</title>
+
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    background:#f5f5f5;
+    padding:40px;
+}
+
+#jp{
+    font-size:40px;
+    margin:30px;
+}
+
+input{
+    font-size:22px;
+    padding:10px;
+    width:300px;
+}
+
+button{
+    font-size:20px;
+    padding:10px 15px;
+    margin-left:10px;
+}
+
+#result{
+    font-size:28px;
+    margin-top:20px;
+}
+
+#score{
+    margin-top:20px;
+    font-size:22px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>英語クイズ</h1>
+
+<div id="jp">---</div>
+
+<input id="ans" placeholder="英語で入力">
+<button id="btn">答える</button>
+
+<div id="result"></div>
+<div id="score">Score: 0</div>
+
+<script>
+
+let words = [
+{jp:"力", en:"power"},
+{jp:"議論する", en:"discuss"},
+{jp:"アルバム", en:"album"},
+{jp:"使われた", en:"used"},
+{jp:"キャッチーな", en:"catchy"},
+{jp:"観客", en:"audience"},
+{jp:"〜のように聞こえる", en:"sound like"},
+{jp:"考慮する", en:"consider"},
+{jp:"最近", en:"lately"},
+{jp:"友情", en:"friendship"},
+{jp:"歌詞", en:"lyric"},
+{jp:"アメリカの", en:"American"},
+{jp:"一人で", en:"alone"},
+{jp:"本当の", en:"true"},
+{jp:"プレイリスト", en:"playlist"},
+{jp:"それらの", en:"those"},
+{jp:"思い出させる", en:"remind"},
+{jp:"〜を思い出させる", en:"remind of"},
+{jp:"タイトル", en:"title"},
+{jp:"不可能な", en:"impossible"},
+{jp:"夏の時間", en:"summertime"},
+{jp:"メロディー", en:"melody"},
+{jp:"リズム", en:"rhythm"},
+{jp:"デビュー", en:"debut"},
+{jp:"複雑な", en:"complex"},
+{jp:"悲しい", en:"unhappy"},
+{jp:"単語", en:"word"},
+{jp:"〜を通して", en:"throughout"},
+{jp:"人", en:"person"},
+{jp:"頼む", en:"ask for"},
+{jp:"対比する", en:"contrast"},
+{jp:"心配", en:"concern"},
+{jp:"怖い", en:"afraid"},
+{jp:"情熱", en:"passion"},
+{jp:"元気な", en:"upbeat"},
+{jp:"幸せな", en:"happy"},
+{jp:"明るい", en:"cheerful"},
+{jp:"心配している", en:"worried"},
+{jp:"〜を恐れる", en:"be afraid of something"},
+{jp:"強い情熱を持つ", en:"have strong passion"},
+{jp:"悲しい", en:"sad"},
+{jp:"落ち込んだ", en:"depressed"},
+{jp:"恋している", en:"be in love with"},
+{jp:"自分を誇りに思う", en:"be proud of yourself"},
+{jp:"親友と喧嘩する", en:"get into a fight with your best friend"},
+{jp:"ジェットコースター", en:"roller coaster"},
+{jp:"閉鎖する", en:"close"},
+{jp:"昼間", en:"daytime"},
+{jp:"ダブル", en:"double"},
+{jp:"遠慮なくどうぞ", en:"feel free to"},
+{jp:"番号付きの", en:"numbered"},
+{jp:"お化けの", en:"haunted"},
+{jp:"番号付きチケット", en:"numbered ticket"},
+{jp:"列に並ぶ", en:"join a line"},
+{jp:"お化け屋敷", en:"haunted house"},
+{jp:"利用可能な", en:"available"},
+{jp:"〜によると", en:"according to"},
+{jp:"ゴーカート", en:"go-cart"},
+{jp:"観覧車", en:"Ferris wheel"},
+{jp:"アプリ", en:"app"}
+];
+
+let current;
+let score = 0;
+
+function next(){
+    current = words[Math.floor(Math.random()*words.length)];
+    document.getElementById("jp").textContent = current.jp;
+    document.getElementById("ans").value = "";
+    document.getElementById("result").textContent = "";
+}
+
+document.getElementById("btn").addEventListener("click", function(){
+
+    let user = document.getElementById("ans").value.trim().toLowerCase();
+    let correct = current.en.toLowerCase();
+
+    if(user === correct){
+        document.getElementById("result").textContent = "○ 正解";
+        score++;
+    }else{
+        document.getElementById("result").textContent = "× 正解: " + current.en;
+    }
+
+    document.getElementById("score").textContent = "Score: " + score;
+
+    setTimeout(next, 900);
+});
+
+next();
+
+</script>
+
+</body>
+</html>
