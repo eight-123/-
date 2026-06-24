@@ -1,1 +1,242 @@
-a
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本史 年表ノート</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    margin:0;
+    background:#f4f4f4;
+    text-align:center;
+}
+
+/* 年表 */
+
+#timeline{
+    display:flex;
+    overflow-x:auto;
+    gap:15px;
+    padding:20px;
+    background:#ddd;
+    scroll-behavior:smooth;
+}
+
+/* イベント */
+
+.event{
+    min-width:170px;
+    padding:12px;
+    background:white;
+    border-radius:12px;
+    cursor:pointer;
+    box-shadow:0 2px 5px rgba(0,0,0,0.2);
+    flex-shrink:0;
+    transition:0.2s;
+}
+
+.event:hover{
+    transform:scale(1.05);
+}
+
+.year{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.name{
+    margin-top:8px;
+    font-size:14px;
+}
+
+/* メモ */
+
+#editor{
+    margin:20px;
+    padding:20px;
+    background:white;
+    width:80%;
+    max-width:700px;
+    margin-left:auto;
+    margin-right:auto;
+    border-radius:15px;
+}
+
+textarea{
+    width:95%;
+    height:220px;
+    font-size:18px;
+    padding:10px;
+}
+
+/* 保存済み */
+
+.saved{
+    background:#b7f5b7;
+}
+
+/* 選択中 */
+
+.selected{
+    border:3px solid #4488ff;
+}
+</style>
+</head>
+
+<body>
+
+<h1>日本史 年表ノート</h1>
+
+<div id="timeline"></div>
+
+<div id="editor">
+    <h2 id="title">イベントを選択</h2>
+    <textarea id="memo" placeholder="ここにメモを書く"></textarea>
+</div>
+
+<script>
+
+var allEvents = [
+
+{name:"青鞜社", year:1911, month:9, day:null},
+{name:"第一次護憲運動", year:1912, month:12, day:null},
+{name:"大戦景気", year:1914, month:7, day:28},
+{name:"米騒動", year:1918, month:8, day:3},
+{name:"全国水平社", year:1922, month:3, day:3},
+{name:"関東大震災", year:1923, month:9, day:1},
+{name:"男子普通選挙法成立", year:1925, month:5, day:5},
+{name:"治安維持法", year:1925, month:3, day:29},
+{name:"金融恐慌", year:1927, month:3, day:null},
+{name:"世界恐慌", year:1929, month:10, day:24},
+{name:"昭和恐慌", year:1930, month:null, day:null},
+{name:"満州事変", year:1931, month:9, day:18},
+{name:"五・一五事件", year:1932, month:5, day:15},
+{name:"政党内閣終焉（斎藤実内閣）", year:1932, month:5, day:26},
+{name:"二・二六事件", year:1936, month:2, day:26},
+{name:"盧溝橋事件", year:1937, month:7, day:7},
+{name:"日中戦争", year:1937, month:7, day:null},
+{name:"国家総動員法", year:1938, month:4, day:1},
+{name:"独ソ不可侵条約", year:1939, month:8, day:23},
+{name:"大政翼賛会", year:1940, month:10, day:12},
+{name:"日独伊三国同盟", year:1940, month:9, day:27},
+{name:"大西洋憲章", year:1941, month:8, day:14},
+{name:"日ソ中立条約", year:1941, month:4, day:13},
+{name:"ABCD包囲網", year:1941, month:7, day:null},
+{name:"真珠湾奇襲", year:1941, month:12, day:8},
+{name:"太平洋戦争", year:1941, month:12, day:8},
+{name:"大東亜共栄圏", year:1942, month:null, day:null},
+{name:"ミッドウェー海戦", year:1942, month:6, day:5},
+{name:"ガダルカナル島の戦い", year:1942, month:8, day:7},
+{name:"皇民化政策", year:1942, month:null, day:null},
+{name:"イタリア降伏", year:1943, month:9, day:8},
+{name:"サイパン島占領", year:1944, month:7, day:9},
+{name:"東京大空襲", year:1945, month:3, day:10},
+{name:"ヤルタ会談", year:1945, month:2, day:4},
+{name:"ドイツ降伏", year:1945, month:5, day:8},
+{name:"ポツダム宣言", year:1945, month:7, day:26},
+{name:"広島原爆投下", year:1945, month:8, day:6},
+{name:"ソ連対日参戦", year:1945, month:8, day:8},
+{name:"長崎原爆投下", year:1945, month:8, day:9},
+{name:"ポツダム宣言受諾", year:1945, month:8, day:14},
+{name:"終戦の玉音放送", year:1945, month:8, day:15},
+{name:"国際連合成立", year:1945, month:10, day:24},
+{name:"極東国際軍事裁判", year:1946, month:5, day:3},
+{name:"日本国憲法公布", year:1946, month:11, day:3},
+{name:"教育基本法", year:1947, month:3, day:31},
+{name:"日本国憲法施行", year:1947, month:5, day:3},
+{name:"治安維持法廃止", year:1945, month:10, day:15},
+{name:"冷戦開始", year:1947, month:null, day:null},
+{name:"自衛隊発足", year:1954, month:7, day:1}
+
+];
+
+const timeline = document.getElementById("timeline");
+const memo = document.getElementById("memo");
+const title = document.getElementById("title");
+
+let currentEvent = null;
+let selectedBox = null;
+
+function createTimeline(){
+
+    allEvents.sort((a,b)=>a.year-b.year);
+
+    allEvents.forEach(event=>{
+
+        let box = document.createElement("div");
+        box.className = "event";
+
+        let saved = localStorage.getItem("memo_"+event.name);
+
+        if(saved && saved !== ""){
+            box.classList.add("saved");
+        }
+
+        box.innerHTML = `
+            <div class="year">${event.year}</div>
+            <div class="name">${event.name}</div>
+        `;
+
+        box.onclick = ()=>openMemo(event,box);
+
+        timeline.appendChild(box);
+
+    });
+}
+
+function openMemo(event,box){
+
+    currentEvent = event;
+
+    if(selectedBox){
+        selectedBox.classList.remove("selected");
+    }
+
+    box.classList.add("selected");
+    selectedBox = box;
+
+    title.textContent = event.name;
+
+    memo.value =
+        localStorage.getItem("memo_"+event.name) || "";
+}
+
+memo.addEventListener("input",()=>{
+
+    if(!currentEvent) return;
+
+    localStorage.setItem(
+        "memo_"+currentEvent.name,
+        memo.value
+    );
+
+    updateColors();
+});
+
+function updateColors(){
+
+    let boxes = document.querySelectorAll(".event");
+
+    boxes.forEach((box,index)=>{
+
+        let event = allEvents[index];
+
+        let saved =
+          localStorage.getItem("memo_"+event.name);
+
+        box.classList.remove("saved");
+
+        if(saved && saved!==""){
+            box.classList.add("saved");
+        }
+    });
+}
+
+createTimeline();
+
+</script>
+
+</body>
+</html>
