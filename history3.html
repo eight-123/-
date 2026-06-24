@@ -17,8 +17,6 @@ h1{
     margin:20px;
 }
 
-/* 横スクロール */
-
 #container{
     overflow-x:auto;
     border-top:2px solid gray;
@@ -26,24 +24,18 @@ h1{
     background:white;
 }
 
-/* メインキャンバス */
-
 #timeline{
-    width:2500px;
+    width:2600px;
     height:650px;
     position:relative;
     margin:20px;
 }
-
-/* 横線 */
 
 .lane{
     position:absolute;
     width:2400px;
     border-top:1px solid #ccc;
 }
-
-/* 国名 */
 
 .label{
     position:absolute;
@@ -53,8 +45,6 @@ h1{
     padding-right:10px;
 }
 
-/* 年 */
-
 .yearMark{
     position:absolute;
     top:0;
@@ -62,30 +52,47 @@ h1{
     color:gray;
 }
 
-/* イベント */
-
 .event{
     position:absolute;
     width:22px;
     height:22px;
     border-radius:50%;
-    background:#4488ff;
     cursor:pointer;
     transition:0.2s;
 }
 
 .event:hover{
-    transform:scale(1.3);
+    transform:scale(1.5);
+    z-index:100;
 }
 
 /* 保存済み */
 
 .saved{
-    background:#44bb44;
-    transform:scale(1.25);
+    border:4px solid limegreen;
 }
 
-/* 編集 */
+/* ツールチップ */
+
+.tooltip{
+    position:absolute;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%);
+    background:black;
+    color:white;
+    padding:4px 8px;
+    border-radius:6px;
+    font-size:12px;
+    white-space:nowrap;
+    opacity:0;
+    pointer-events:none;
+    transition:0.2s;
+}
+
+.event:hover .tooltip{
+    opacity:1;
+}
 
 #editor{
     margin:20px auto;
@@ -120,6 +127,8 @@ textarea{
 
 <script>
 
+/* 縦位置 */
+
 const lanes = {
     "日本":80,
     "ドイツ":150,
@@ -129,6 +138,20 @@ const lanes = {
     "中国":430,
     "国際":500
 };
+
+/* 色 */
+
+const teamColors = {
+    "日本":"#ff6666",
+    "ドイツ":"#444444",
+    "イタリア":"#4caf50",
+    "アメリカ":"#4285f4",
+    "ソ連":"#9c27b0",
+    "中国":"#fbc02d",
+    "国際":"#00acc1"
+};
+
+/* データ */
 
 const allEvents = [
 
@@ -181,62 +204,83 @@ const memo = document.getElementById("memo");
 const title = document.getElementById("title");
 
 let current = null;
+let eventMap = {};
+
+/* 年→座標 */
 
 function yearToX(year){
     return (year - 1937) * 250 + 150;
 }
 
-/* レーン生成 */
+/* レーン */
 
 for(let team in lanes){
 
     let line = document.createElement("div");
-    line.className="lane";
-    line.style.top=lanes[team]+"px";
-    line.style.left="120px";
+    line.className = "lane";
+    line.style.top = lanes[team] + "px";
+    line.style.left = "120px";
     timeline.appendChild(line);
 
-    let label=document.createElement("div");
-    label.className="label";
-    label.textContent=team;
-    label.style.top=(lanes[team]-10)+"px";
+    let label = document.createElement("div");
+    label.className = "label";
+    label.textContent = team;
+    label.style.top = (lanes[team]-10) + "px";
+    label.style.color = teamColors[team];
     timeline.appendChild(label);
 }
 
-/* 年表示 */
+/* 年 */
 
-for(let y=1937;y<=1945;y++){
+for(let y=1937; y<=1945; y++){
 
-    let year=document.createElement("div");
-    year.className="yearMark";
-    year.textContent=y;
-    year.style.left=yearToX(y)+"px";
-    year.style.top="20px";
+    let year = document.createElement("div");
+    year.className = "yearMark";
+    year.textContent = y;
+    year.style.left = yearToX(y) + "px";
+    year.style.top = "20px";
 
     timeline.appendChild(year);
 }
 
-/* イベント生成 */
+/* イベント */
 
 function drawEvents(){
 
     allEvents.forEach(event=>{
 
-        let dot=document.createElement("div");
-        dot.className="event";
+        let dot = document.createElement("div");
+        dot.className = "event";
 
-        let saved=localStorage.getItem(
-            "memo_"+event.name+"_"+event.team
-        );
+        dot.style.background = teamColors[event.team];
 
-        if(saved && saved!==""){
+        let key =
+          "memo_" + event.name + "_" + event.team;
+
+        let saved =
+          localStorage.getItem(key);
+
+        if(saved && saved !== ""){
             dot.classList.add("saved");
         }
 
-        dot.style.left=yearToX(event.year)+"px";
-        dot.style.top=(lanes[event.team]-11)+"px";
+        eventMap[key] = dot;
 
-        dot.onclick=()=>openMemo(event);
+        /* tooltip */
+
+        let tip = document.createElement("div");
+        tip.className = "tooltip";
+        tip.textContent = event.name;
+
+        dot.appendChild(tip);
+
+        dot.style.left =
+          yearToX(event.year) + "px";
+
+        dot.style.top =
+          (lanes[event.team]-11) + "px";
+
+        dot.onclick = ()=>openMemo(event);
 
         timeline.appendChild(dot);
     });
@@ -244,27 +288,37 @@ function drawEvents(){
 
 function openMemo(event){
 
-    current=event;
+    current = event;
 
-    title.textContent=
-      event.name+" ("+event.team+")";
+    title.textContent =
+      event.name + " (" + event.team + ")";
 
-    memo.value=
-      localStorage.getItem(
-        "memo_"+event.name+"_"+event.team
-      ) || "";
+    let key =
+      "memo_" + event.name + "_" + event.team;
+
+    memo.value =
+      localStorage.getItem(key) || "";
 }
+
+/* 自動保存 */
 
 memo.addEventListener("input",()=>{
 
     if(!current) return;
 
+    let key =
+      "memo_" + current.name + "_" + current.team;
+
     localStorage.setItem(
-      "memo_"+current.name+"_"+current.team,
+      key,
       memo.value
     );
 
-    location.reload();
+    if(memo.value.trim() !== ""){
+        eventMap[key].classList.add("saved");
+    }else{
+        eventMap[key].classList.remove("saved");
+    }
 });
 
 drawEvents();
