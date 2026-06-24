@@ -6,10 +6,11 @@
 <title>第二次世界大戦 年表</title>
 
 <style>
+
 body{
-    font-family: Arial, sans-serif;
     margin:0;
-    background:#f5f5f5;
+    font-family:Arial,sans-serif;
+    background:#f4f4f4;
     text-align:center;
 }
 
@@ -19,50 +20,72 @@ h1{
 
 #container{
     overflow-x:auto;
-    border-top:2px solid gray;
-    border-bottom:2px solid gray;
     background:white;
+    border-top:2px solid #ccc;
+    border-bottom:2px solid #ccc;
 }
 
+/* メイン */
+
 #timeline{
-    width:2600px;
-    height:650px;
     position:relative;
+    width:3000px;
+    height:900px;
     margin:20px;
 }
 
+/* 国レーン */
+
 .lane{
     position:absolute;
-    width:2400px;
-    border-top:1px solid #ccc;
+    width:2800px;
+    border-top:1px solid #bbb;
 }
 
 .label{
     position:absolute;
-    left:0;
+    left:10px;
     font-weight:bold;
-    background:#f5f5f5;
-    padding-right:10px;
+    font-size:18px;
 }
+
+/* 年 */
 
 .yearMark{
     position:absolute;
-    top:0;
-    font-size:14px;
+    top:10px;
     color:gray;
+    font-size:15px;
 }
+
+/* イベントカード */
 
 .event{
     position:absolute;
-    width:22px;
-    height:22px;
-    border-radius:50%;
+
+    width:95px;
+    min-height:35px;
+
+    padding:4px;
+
+    border-radius:8px;
+
+    font-size:11px;
+    line-height:1.2;
+
+    word-break:break-all;
+
     cursor:pointer;
+
     transition:0.2s;
+
+    box-sizing:border-box;
 }
 
+/* hover */
+
 .event:hover{
-    transform:scale(1.5);
+    transform:scale(1.08);
     z-index:100;
 }
 
@@ -72,43 +95,36 @@ h1{
     border:4px solid limegreen;
 }
 
-/* ツールチップ */
+/* 選択中 */
 
-.tooltip{
-    position:absolute;
-    bottom:30px;
-    left:50%;
-    transform:translateX(-50%);
-    background:black;
-    color:white;
-    padding:4px 8px;
-    border-radius:6px;
-    font-size:12px;
-    white-space:nowrap;
-    opacity:0;
-    pointer-events:none;
-    transition:0.2s;
+.selected{
+    transform:scale(1.08);
+    border:4px solid #4488ff;
 }
 
-.event:hover .tooltip{
-    opacity:1;
-}
+/* メモ */
 
 #editor{
+    width:85%;
+    max-width:800px;
+
     margin:20px auto;
-    width:80%;
-    max-width:700px;
+
     background:white;
     padding:20px;
+
     border-radius:15px;
 }
 
 textarea{
     width:95%;
-    height:200px;
+    height:220px;
+
     font-size:18px;
+
     padding:10px;
 }
+
 </style>
 </head>
 
@@ -122,204 +138,373 @@ textarea{
 
 <div id="editor">
     <h2 id="title">イベントを選択</h2>
-    <textarea id="memo" placeholder="メモを書く"></textarea>
+    <textarea id="memo"></textarea>
 </div>
 
 <script>
 
-/* 縦位置 */
+/* レーン */
 
 const lanes = {
-    "日本":80,
-    "ドイツ":150,
-    "イタリア":220,
-    "アメリカ":290,
-    "ソ連":360,
-    "中国":430,
-    "国際":500
+
+ "日本":100,
+ "ドイツ":200,
+ "イタリア":300,
+ "アメリカ":400,
+ "ソ連":500,
+ "中国":600,
+ "国際":700
+
 };
 
 /* 色 */
 
 const teamColors = {
-    "日本":"#ff6666",
-    "ドイツ":"#444444",
-    "イタリア":"#4caf50",
-    "アメリカ":"#4285f4",
-    "ソ連":"#9c27b0",
-    "中国":"#fbc02d",
-    "国際":"#00acc1"
+
+ "日本":"#ff7777",
+ "ドイツ":"#555555",
+ "イタリア":"#4caf50",
+ "アメリカ":"#4285f4",
+ "ソ連":"#9c27b0",
+ "中国":"#fbc02d",
+ "国際":"#00acc1"
+
 };
 
 /* データ */
 
 const allEvents = [
 
-{name:"大政翼賛会", year:1940, team:"日本"},
-{name:"日ソ中立条約", year:1941, team:"日本"},
-{name:"ABCD包囲網", year:1941, team:"日本"},
-{name:"真珠湾奇襲", year:1941, team:"日本"},
-{name:"太平洋戦争", year:1941, team:"日本"},
-{name:"大東亜共栄圏", year:1942, team:"日本"},
-{name:"ミッドウェー海戦", year:1942, team:"日本"},
-{name:"ガダルカナル島の戦い", year:1942, team:"日本"},
-{name:"サイパン島占領", year:1944, team:"日本"},
-{name:"東京大空襲", year:1945, team:"日本"},
-{name:"ポツダム宣言受諾", year:1945, team:"日本"},
-{name:"終戦の玉音放送", year:1945, team:"日本"},
+{name:"盧溝橋事件",year:1937,team:"中国"},
+{name:"日中戦争",year:1937,team:"中国"},
 
-{name:"独ソ不可侵条約", year:1939, team:"ドイツ"},
-{name:"日独伊三国同盟", year:1940, team:"ドイツ"},
-{name:"ドイツ降伏", year:1945, team:"ドイツ"},
+{name:"独ソ不可侵条約",year:1939,team:"ドイツ"},
+{name:"独ソ不可侵条約",year:1939,team:"ソ連"},
 
-{name:"日独伊三国同盟", year:1940, team:"イタリア"},
-{name:"イタリア降伏", year:1943, team:"イタリア"},
+{name:"大政翼賛会",year:1940,team:"日本"},
+{name:"日独伊三国同盟",year:1940,team:"ドイツ"},
+{name:"日独伊三国同盟",year:1940,team:"イタリア"},
 
-{name:"ABCD包囲網", year:1941, team:"アメリカ"},
-{name:"大西洋憲章", year:1941, team:"アメリカ"},
-{name:"ミッドウェー海戦", year:1942, team:"アメリカ"},
-{name:"ガダルカナル島の戦い", year:1942, team:"アメリカ"},
-{name:"サイパン島占領", year:1944, team:"アメリカ"},
-{name:"広島原爆投下", year:1945, team:"アメリカ"},
-{name:"長崎原爆投下", year:1945, team:"アメリカ"},
+{name:"日ソ中立条約",year:1941,team:"日本"},
+{name:"日ソ中立条約",year:1941,team:"ソ連"},
 
-{name:"独ソ不可侵条約", year:1939, team:"ソ連"},
-{name:"日ソ中立条約", year:1941, team:"ソ連"},
-{name:"ヤルタ会談", year:1945, team:"ソ連"},
-{name:"ソ連対日参戦", year:1945, team:"ソ連"},
+{name:"ABCD包囲網",year:1941,team:"日本"},
+{name:"ABCD包囲網",year:1941,team:"アメリカ"},
 
-{name:"盧溝橋事件", year:1937, team:"中国"},
-{name:"日中戦争", year:1937, team:"中国"},
-{name:"皇民化政策", year:1942, team:"中国"},
+{name:"大西洋憲章",year:1941,team:"アメリカ"},
+{name:"大西洋憲章",year:1941,team:"国際"},
 
-{name:"大西洋憲章", year:1941, team:"国際"},
-{name:"ヤルタ会談", year:1945, team:"国際"},
-{name:"ポツダム宣言", year:1945, team:"国際"},
-{name:"国際連合成立", year:1945, team:"国際"}
+{name:"真珠湾奇襲",year:1941,team:"日本"},
+{name:"太平洋戦争",year:1941,team:"日本"},
+
+/* ===== データ続き ===== */
+
+{name:"大東亜共栄圏",year:1942,team:"日本"},
+{name:"ミッドウェー海戦",year:1942,team:"日本"},
+{name:"ミッドウェー海戦",year:1942,team:"アメリカ"},
+
+{name:"ガダルカナル島の戦い",year:1942,team:"日本"},
+{name:"ガダルカナル島の戦い",year:1942,team:"アメリカ"},
+
+{name:"皇民化政策",year:1942,team:"中国"},
+
+{name:"イタリア降伏",year:1943,team:"イタリア"},
+
+{name:"サイパン島占領",year:1944,team:"日本"},
+{name:"サイパン島占領",year:1944,team:"アメリカ"},
+
+{name:"東京大空襲",year:1945,team:"日本"},
+
+{name:"ヤルタ会談",year:1945,team:"ソ連"},
+{name:"ヤルタ会談",year:1945,team:"国際"},
+
+{name:"ドイツ降伏",year:1945,team:"ドイツ"},
+
+{name:"ポツダム宣言",year:1945,team:"国際"},
+
+{name:"広島原爆投下",year:1945,team:"アメリカ"},
+{name:"ソ連対日参戦",year:1945,team:"ソ連"},
+{name:"長崎原爆投下",year:1945,team:"アメリカ"},
+
+{name:"ポツダム宣言受諾",year:1945,team:"日本"},
+{name:"終戦の玉音放送",year:1945,team:"日本"},
+
+{name:"国際連合成立",year:1945,team:"国際"}
 
 ];
+
+
+/* ===== DOM ===== */
 
 const timeline = document.getElementById("timeline");
 const memo = document.getElementById("memo");
 const title = document.getElementById("title");
 
 let current = null;
+let selectedCard = null;
 let eventMap = {};
 
-/* 年→座標 */
+
+/* ===== 年→X座標 ===== */
 
 function yearToX(year){
-    return (year - 1937) * 250 + 150;
+
+    return (year - 1937) * 280 + 180;
+
 }
 
-/* レーン */
+
+/* ===== 同年同国の重なり管理 ===== */
+
+let stackMap = {};
+
+/*
+例
+
+1945_日本 → 0
+1945_日本 → 1
+1945_日本 → 2
+
+*/
+
+function getStackOffset(event){
+
+    let key = event.year + "_" + event.team;
+
+    if(stackMap[key] === undefined){
+
+        stackMap[key] = 0;
+
+    }
+
+    let offset = stackMap[key];
+
+    stackMap[key]++;
+
+    return offset;
+
+}
+
+
+/* ===== レーン描画 ===== */
 
 for(let team in lanes){
 
     let line = document.createElement("div");
+
     line.className = "lane";
-    line.style.top = lanes[team] + "px";
-    line.style.left = "120px";
+
+    line.style.top =
+        lanes[team] + "px";
+
+    line.style.left = "130px";
+
     timeline.appendChild(line);
 
+
     let label = document.createElement("div");
+
     label.className = "label";
+
     label.textContent = team;
-    label.style.top = (lanes[team]-10) + "px";
-    label.style.color = teamColors[team];
+
+    label.style.top =
+        (lanes[team] - 10) + "px";
+
+    label.style.color =
+        teamColors[team];
+
     timeline.appendChild(label);
+
 }
 
-/* 年 */
 
-for(let y=1937; y<=1945; y++){
+/* ===== 年号描画 ===== */
+
+for(let y = 1937; y <= 1945; y++){
 
     let year = document.createElement("div");
+
     year.className = "yearMark";
+
     year.textContent = y;
-    year.style.left = yearToX(y) + "px";
-    year.style.top = "20px";
+
+    year.style.left =
+        yearToX(y) + "px";
 
     timeline.appendChild(year);
+
 }
 
-/* イベント */
+
+/* ===== イベント描画 ===== */
 
 function drawEvents(){
 
     allEvents.forEach(event=>{
 
-        let dot = document.createElement("div");
-        dot.className = "event";
+        let card =
+            document.createElement("div");
 
-        dot.style.background = teamColors[event.team];
+        card.className = "event";
+
+        card.textContent =
+            event.name;
+
+        /* 色 */
+
+        card.style.background =
+            teamColors[event.team];
+
+
+        /* 1945問題解決 */
+
+        let stack =
+            getStackOffset(event);
+
+        let x =
+            yearToX(event.year);
+
+        let y =
+            lanes[event.team]
+            - 18
+            - stack * 48;
+
+
+        card.style.left =
+            x + "px";
+
+        card.style.top =
+            y + "px";
+
+
+        /* localStorage key */
 
         let key =
-          "memo_" + event.name + "_" + event.team;
+          "memo_"
+          + event.name
+          + "_"
+          + event.team;
+
 
         let saved =
           localStorage.getItem(key);
 
         if(saved && saved !== ""){
-            dot.classList.add("saved");
+
+            card.classList.add("saved");
+
         }
 
-        eventMap[key] = dot;
 
-        /* tooltip */
+        eventMap[key] = card;
 
-        let tip = document.createElement("div");
-        tip.className = "tooltip";
-        tip.textContent = event.name;
 
-        dot.appendChild(tip);
+        /* クリック */
 
-        dot.style.left =
-          yearToX(event.year) + "px";
+        card.onclick = ()=>{
 
-        dot.style.top =
-          (lanes[event.team]-11) + "px";
+            openMemo(event,card);
 
-        dot.onclick = ()=>openMemo(event);
+        };
 
-        timeline.appendChild(dot);
+
+        timeline.appendChild(card);
+
     });
+
 }
 
-function openMemo(event){
+/* ===== メモを開く ===== */
+
+function openMemo(event,card){
 
     current = event;
 
+    /* 前の選択解除 */
+
+    if(selectedCard){
+
+        selectedCard.classList.remove(
+            "selected"
+        );
+
+    }
+
+    /* 新しい選択 */
+
+    card.classList.add("selected");
+
+    selectedCard = card;
+
+
+    /* タイトル */
+
     title.textContent =
-      event.name + " (" + event.team + ")";
+        event.name
+        + "（"
+        + event.team
+        + "）";
+
+
+    /* localStorage key */
 
     let key =
-      "memo_" + event.name + "_" + event.team;
+      "memo_"
+      + event.name
+      + "_"
+      + event.team;
+
+
+    /* 読み込み */
 
     memo.value =
-      localStorage.getItem(key) || "";
+      localStorage.getItem(key)
+      || "";
+
 }
 
-/* 自動保存 */
+
+/* ===== 自動保存 ===== */
 
 memo.addEventListener("input",()=>{
 
     if(!current) return;
 
+
     let key =
-      "memo_" + current.name + "_" + current.team;
+      "memo_"
+      + current.name
+      + "_"
+      + current.team;
+
+
+    /* 保存 */
 
     localStorage.setItem(
-      key,
-      memo.value
+        key,
+        memo.value
     );
 
+
+    /* 緑枠更新 */
+
     if(memo.value.trim() !== ""){
-        eventMap[key].classList.add("saved");
+
+        eventMap[key]
+          .classList.add("saved");
+
     }else{
-        eventMap[key].classList.remove("saved");
+
+        eventMap[key]
+          .classList.remove("saved");
+
     }
+
 });
+
+
+/* ===== 初期描画 ===== */
 
 drawEvents();
 
