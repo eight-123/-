@@ -1,1 +1,212 @@
-abv
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本史 年号トレーニング</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    text-align:center;
+    background:#f3f3f3;
+    padding:40px;
+}
+
+#card{
+    max-width:500px;
+    margin:auto;
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+#event{
+    font-size:28px;
+    margin:30px 0;
+}
+
+input{
+    font-size:32px;
+    width:180px;
+    text-align:center;
+    padding:10px;
+    border:none;
+    border-radius:12px;
+    outline:none;
+    transition:0.2s;
+}
+
+button{
+    margin-top:20px;
+    padding:12px 24px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+#message{
+    margin-top:20px;
+    font-size:22px;
+}
+</style>
+</head>
+<body>
+
+<div id="card">
+
+<h1>日本史 年号トレーニング</h1>
+
+<div id="event"></div>
+
+<input id="answer" maxlength="4">
+
+<br>
+
+<button onclick="submitAnswer()">回答</button>
+
+<div id="message"></div>
+
+</div>
+
+<script>
+
+// ===== ここに全部貼る =====
+
+const allEvents = [
+
+{name:"青鞜社", year:1911},
+{name:"第一次護憲運動", year:1912},
+{name:"大戦景気", year:1914},
+{name:"米騒動", year:1918},
+{name:"全国水平社", year:1922},
+{name:"関東大震災", year:1923},
+{name:"男子普通選挙法成立", year:1925},
+{name:"治安維持法", year:1925},
+{name:"金融恐慌", year:1927},
+{name:"世界恐慌", year:1929},
+{name:"昭和恐慌", year:1930},
+{name:"満州事変", year:1931},
+{name:"五・一五事件", year:1932},
+{name:"二・二六事件", year:1936},
+{name:"盧溝橋事件", year:1937},
+{name:"国家総動員法", year:1938},
+{name:"大政翼賛会", year:1940},
+{name:"ABCD包囲網", year:1941},
+{name:"太平洋戦争", year:1941},
+{name:"ミッドウェー海戦", year:1942},
+{name:"東京大空襲", year:1945},
+{name:"日本国憲法施行", year:1947},
+{name:"自衛隊発足", year:1954}
+
+];
+
+let current;
+
+// 問題出す
+function nextQuestion(){
+
+    current = allEvents[
+        Math.floor(Math.random()*allEvents.length)
+    ];
+
+    document.getElementById("event").textContent = current.name;
+
+    document.getElementById("answer").value = "";
+
+    document.getElementById("answer").style.background = "white";
+
+    document.getElementById("message").textContent = "";
+}
+
+
+// 距離判定
+function updateColor(){
+
+    let input = document.getElementById("answer");
+
+    let value = Number(input.value);
+
+    if(!value){
+
+        input.style.background = "white";
+
+        return;
+    }
+
+    let diff = Math.abs(value - current.year);
+
+    if(diff === 0){
+
+        input.style.background = "#8cff8c"; // 緑
+    }
+
+    else if(diff <= 1){
+
+        input.style.background = "#b8ff8c";
+    }
+
+    else if(diff <= 3){
+
+        input.style.background = "#ffff8c";
+    }
+
+    else if(diff <= 10){
+
+        input.style.background = "#ffd28c";
+    }
+
+    else if(diff <= 30){
+
+        input.style.background = "#ffb18c";
+    }
+
+    else{
+
+        input.style.background = "#ff8c8c"; // 赤
+    }
+}
+
+
+// 回答
+function submitAnswer(){
+
+    let ans = Number(
+        document.getElementById("answer").value
+    );
+
+    let message = document.getElementById("message");
+
+    if(ans === current.year){
+
+        message.textContent = "🎉 正解";
+
+        setTimeout(nextQuestion,800);
+
+    }else{
+
+        message.textContent = "× まだ違う";
+    }
+}
+
+
+const input = document.getElementById("answer");
+
+input.addEventListener("input", updateColor);
+
+input.addEventListener("keydown", function(e){
+
+    if(e.key==="Enter"){
+
+        submitAnswer();
+    }
+});
+
+nextQuestion();
+
+</script>
+
+</body>
+</html>
